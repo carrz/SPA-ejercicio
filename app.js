@@ -1,86 +1,111 @@
-const express = require('express');
-const ejs = require('ejs');
-const paypal = require('paypal-rest-sdk');
+$(document).ready(function() {})
 
-paypal.configure({
-  'mode': 'sandbox', //sandbox or live
-  'client_id': 'AY6oDn_X3iJYG9f1j4A5yrKY2_za4trfukqRFUfOs2JaNMA81zgE8DwYmoXtdaTKfs3dLL8slMLUXR4e',
-  'client_secret': 'EKS9vwXERx8TiURYt9Hp5nIGC8uDaL4l2Vyipw7lJ77IuG01CrFvqTjMX19QbY40VwXQjg2b9ypFQQCJ'
-});
+//-----------CONSULTA API ML PARA CATEGORÍAS/SUBCATEGORIAS------------//
+function fetchCategories(callback, error, category) {
+  fetch(`https://api.mercadolibre.com/categories/${category}`)
+    .then(function(response) {
+      return response.json();
+    })
+    .then((response) => {
+      callback(response, category);
+    }).catch((error) => {
+      errorCallback(error);
+    });
+}
 
-const app = express();
+//---------------RENDERIZA CONTENIDO DE BARRA DE NAVEGACIÓN TRAS CONSULTA A API ML-------------------//
+let categoryId = ["MLC1574", "MLC1367", "MLC1276"]
+categoryId.forEach(idCategory => {
+  fetchCategories(function(response, category) {
+    let data = response.children_categories;
+    data.forEach(element => {
+      $(`#${category}`).append(
+        `<li class="col-sm-3"> <ul> <li class="dropdown-header" id="${element.id}"> ${element.name}</li></ul></li>`)
+      fetchCategories(function(response, category) {
+        let data = response.children_categories;
+        data.forEach(element => {
+          $(`#${category}`).append(
+            `<li id="${element.id}" class="subcategory"><a href="#">${element.name}</a></li>`);
+        })
+        $('.subcategory').unbind('click');
+        $('.subcategory').on('click', (e) => {
+          let idSubcategory = e.currentTarget.id;
+          fetchProductsSubcategory(function(response) {
+            let data = response.results;
+            $('.index-content .container').empty();
+            data.forEach(element => {
+              renderProducts(element);
+            })
+          }, function(error) {
+            console.error(error);
+          }, idSubcategory)
 
-app.set('view engine', 'ejs');
+        })
+      }, function(error) {
+        console.log(error);
+      }, element.id)
+    });
+  }, function(error) {
+    console.log(error);
+  }, idCategory)
+})
 
-app.get('/', (req, res) => res.render('index'));
-
-app.post('/pay', (req, res) => {
-  const create_payment_json = {
-    "intent": "sale",
-    "payer": {
-      "payment_method": "paypal"
-    },
-    "redirect_urls": {
-      "return_url": "http://localhost:3000/success",
-      "cancel_url": "http://localhost:3000/cancel"
-    },
-    "transactions": [{
-      "item_list": {
-        "items": [{
-          "name": "Red Sox Hat",
-          "sku": "001",
-          "price": "250.00",
-          "currency": "USD",
-          "quantity": 1
-        }]
-      },
-      "amount": {
-        "currency": "USD",
-        "total": "250.00"
-      },
-      "description": "Hat for the best team ever"
-    }]
+//-----------CONSULTA API ML PARA DETALLE DE PRODUCTOS EN SUBCATEGORIAS------------//
+function fetchProductsSubcategory(callback, errorCallback, category) {
+  fetch(`https://api.mercadolibre.com/sites/MLC/search?category=${category}&official_store_id=alloffset=0&limit=20`)
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(response) {
+      callback(response);
+      console.log(response)
+    })
+    .catch(function(error) {
+      errorCallback(error);
+      console.log(error)
+    })
+}
+//-----------RENDERIZA RESULTADOS DE BÚSQUEDAS------------//
+function renderProducts(element) {
+  $('.index-content .container').append(`<a href="">
+			<div class="col-lg-3">
+				<div class="card">
+					<img src="${element.thumbnail}">
+					<h6>${element.title}</h6>
+					<p>$${element.price}</p>										
+				</div>
+			</div>
+		</a>`)
+}
+//------EVENTO BARRA DE BÚSQUEDA---------//
+$('#search').keydown(function(event) {
+  if (event.which == 13) {
+    let search = $('#search').val();
+    event.preventDefault();
+    fetchBySearch(function(response) {
+      let data = response.results;
+      $('.index-content .container').empty();
+      data.forEach(element => {
+        renderProducts(element);
+      })
+    }, function(error) {
+      console.error(error);
+    }, search)
+    $('#search').val('');
   };
-
-  paypal.payment.create(create_payment_json, function (error, payment) {
-    if (error) {
-      throw error;
-    } else {
-      for (let i = 0; i < payment.links.length; i++) {
-        if (payment.links[i].rel === 'approval_url') {
-          res.redirect(payment.links[i].href);
-        }
-      }
-    }
-  });
-
 });
-
-app.get('/success', (req, res) => {
-  const payerId = req.query.PayerID;
-  const paymentId = req.query.paymentId;
-
-  const execute_payment_json = {
-    "payer_id": payerId,
-    "transactions": [{
-      "amount": {
-        "currency": "USD",
-        "total": "250.00"
-      }
-    }]
-  };
-
-  paypal.payment.execute(paymentId, execute_payment_json, function (error, payment) {
-    if (error) {
-      console.log(error.response);
-      throw error;
-    } else {
-      console.log(JSON.stringify(payment));
-      res.send('Success');
-    }
-  });
-});
-
-app.get('/cancel', (req, res) => res.send('Cancelled'));
-
-app.listen(3000, () => console.log('Server Started'));
+//-----------CONSULTA API ML PARA BARRA DE BÚSQUEDA------------//
+function fetchBySearch(callback, errorCallback, search) {
+  fetch(`https://api.mercadolibre.com/sites/MLC/search?q=${search}&offset=0&limit=20`)
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(response) {
+      callback(response);
+      console.log(response)
+    })
+    .catch(function(error) {
+      errorCallback(error);
+      console.log(error)
+    })
+}
