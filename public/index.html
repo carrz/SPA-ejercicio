@@ -41,7 +41,7 @@
             </div>
             <button class="form-control btn btn-outline-success my-2 my-sm-0 mr-sm-2" type="submit" aria-describedby="basic-addon1"><i class="fas fa-search"></i></button>
           </div>
-          <div><a class="nav-link" href="/cart">My cart (0) items</a></div>
+          <div><a class="nav-link" href="/cart">My cart (<span id="addItem">0</span>) items</a></div>
 
           <button id="btn-signin-send" class="btn btn-success my-2 my-sm-0 btn-sm mr-sm-2">Sign in</button>
           <!-- Botón que abre el model de registro -->
@@ -73,27 +73,6 @@
     </div>
   </div>
 
-    <!-- <div class="all-product page">
-      <ul class="products-list">
-        <script id="products-template" type="x-handlebars-template">​
-          {{#each this}}
-            <li data-index="{{id}}">
-              <a href="#" class="product-photo"><img src="{{image.small}}" height="130" alt="{{name}}"/></a>
-              <h2><a href="#"> {{name}} </a></h2>
-              <ul class="product-description">
-                <li><span>Manufacturer: </span>{{specs.manufacturer}}</li>
-                <li><span>Storage: </span>{{specs.storage}} GB</li>
-                <li><span>OS: </span>{{specs.os}}</li>
-                <li><span>Camera: </span>{{specs.camera}} Mpx</li>
-              </ul>
-              <button>Buy Now!</button>
-              <p class="product-price">{{price}}$</p>
-              <div class="highlight"></div>
-            </li>
-          {{/each}}
-        </script>
-      </ul>
-    </div> -->
   <!-- Footer -->
   <footer class="py-4 bg-dark fixed-bottom">
     <div class="container">
