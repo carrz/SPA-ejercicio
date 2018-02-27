@@ -1,0 +1,26 @@
+{
+  "name": "e-commerce",
+  "version": "1.0.0",
+  "description": "SPA e-commerce",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "spa",
+    "express"
+  ],
+  "author": "Paula Campos, Carolina Celis, Bianca Yanez, Carla Zumaran",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint-config-google": "^0.9.1",
+    "express": "^4.16.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carrz/SPA-ejercicio.git"
+  },
+  "homepage": "https://github.com/carrz//SPA-ejercicio#readme"
+  }
+}
